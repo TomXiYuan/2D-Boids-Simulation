@@ -1,0 +1,17 @@
+[gd_scene load_steps=3 format=3 uid="uid://6fvff1jv4ila"]
+
+[ext_resource type="Texture2D" uid="uid://bb15v0k2fc1pg" path="res://assets/CircleSprite.png" id="1_7ukg5"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_drdry"]
+radius = 255.04901
+
+[node name="Obstacle" type="RigidBody2D"]
+gravity_scale = 0.0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_drdry")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+position = Vector2(1.5258789e-05, 1.5258789e-05)
+scale = Vector2(1.716797, 1.716797)
+texture = ExtResource("1_7ukg5")

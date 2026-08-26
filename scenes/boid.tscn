@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3 uid="uid://byvs287f0skyy"]
+
+[ext_resource type="Script" uid="uid://dntdhec6f6ind" path="res://scripts/boid.gd" id="1_n4whh"]
+
+[node name="Boid" type="Node2D"]
+script = ExtResource("1_n4whh")
+maxViewDst = 200.0
+a = 2.5
