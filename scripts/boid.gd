@@ -2,37 +2,40 @@ extends Node2D
 
 class_name Boid
 
+var targetVelocity : Vector2
 var velocity : Vector2
 var acc : Vector2
 
 var maxSpeed : float
-var minSpeed : float = 2.0
+var minSpeed : float = 4.0
 
-@export var sideRayCount : int = 4
+@export var sideRayCount : int = 10
 @export var raySpreadAngle : float = deg_to_rad(90.0)
 @export var maxViewDst := 100.0
 
 @export var obstacleMask : int = 1
-@export var a := 0.01
+@export var a := 10.0
 
-var previousRotation : float
+@export var smoothing: float = 1.5
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
 	self.add_to_group("boids")
 
-func update() -> void:
-	acc += avoid()
-	velocity += acc
+func update(delta: float) -> void:
+	var avoidAcc = avoid()
+	targetVelocity = velocity.normalized() * maxSpeed
+	targetVelocity += acc + avoidAcc
+
+	velocity = velocity.lerp(targetVelocity, 1.0 - exp(-smoothing * delta))
+	if velocity.length() > maxSpeed:
+		velocity = velocity.limit_length(maxSpeed)
+	elif velocity.length() < minSpeed:
+		velocity = velocity.normalized() * minSpeed
+		
 	position += velocity
 	_wrap()
-	queue_redraw()	
-	
-	if velocity.length() > 0 and velocity.length() < minSpeed:
-		velocity = velocity.normalized() * minSpeed
-	else:
-		velocity = velocity.limit_length(maxSpeed)
-
+	queue_redraw()
 	acc = Vector2.ZERO
 
 func _wrap() -> void:
@@ -66,16 +69,7 @@ func avoid() -> Vector2:
 	var state = get_world_2d().direct_space_state
 	var forwardDir = velocity.normalized()
 
-	var results : Array[Dictionary] = [
-		castRay(state, forwardDir),\
-		castRay(state, forwardDir.rotated(deg_to_rad(5.0))),\
-		castRay(state, forwardDir.rotated(deg_to_rad(-5.0)))\
-	]
-	
-	var forwardResult : Dictionary
-	for result in results:
-		if not result.is_empty():
-			forwardResult = result
+	var forwardResult := castRay(state, forwardDir)
 		
 	if forwardResult.is_empty():
 		return Vector2.ZERO
@@ -88,7 +82,7 @@ func avoid() -> Vector2:
 
 	for i in range(1, sideRayCount + 1):
 		var angle = angleStep * i
-
+		# There is probably a way to reduce repeated blocks
 		var rightDir = forwardDir.rotated(angle)
 		var rightResult = castRay(state, rightDir)
 		if rightResult.is_empty():
@@ -112,7 +106,9 @@ func avoid() -> Vector2:
 
 	var target = chosenDir * maxSpeed
 	var steer = target - velocity
-	steer = steer.limit_length(0.1)
+	
+	# TODO: Create a variable for steer limit
+	steer = steer.limit_length(5.0)
 	
 	return steer * a * strength
 

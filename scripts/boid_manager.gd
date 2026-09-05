@@ -34,7 +34,7 @@ func _physics_process(delta: float) -> void:
 	cohere()
 	align()
 	for boid in boids:
-		boid.update()
+		boid.update(delta)
 	
 func spawnBoids() -> void:
 	var coordinates : Array[Vector2] = sampler.generatePoints(spawnRadius, region)
@@ -99,7 +99,7 @@ func cohere() -> void:
 
 func align() -> void:
 	for i in boids.size():
-		var target : Vector2
+		var target : Vector2 = Vector2.ZERO
 		var total : int = 0
 		for j in boids.size():
 			if i == j:

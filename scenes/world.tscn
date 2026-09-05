@@ -21,13 +21,14 @@ stretch_mode = 1
 [node name="BoidManager" type="Node" parent="." node_paths=PackedStringArray("boidContainer")]
 script = ExtResource("3_4wyf3")
 spawnRadius = 30.0
-radius = 60.0
+radius = 75.0
 region = Rect2(-200, -200, 400, 400)
-maxSpeed = 5.0
-maxForce = 0.05
-s = 1.2
-c = 0.7
-a = 0.7
+n = 150
+maxSpeed = 6.0
+maxForce = 5.0
+s = 1.15
+c = 0.9
+a = 1.0
 boidContainer = NodePath("../BoidContainer")
 
 [node name="BoidContainer" type="Node" parent="."]
