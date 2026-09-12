@@ -1,9 +1,10 @@
-[gd_scene load_steps=5 format=3 uid="uid://qj1sytrkessj"]
+[gd_scene load_steps=6 format=3 uid="uid://qj1sytrkessj"]
 
 [ext_resource type="Texture2D" uid="uid://cm4thdqd3uwmy" path="res://assets/Background-Tile.png" id="1_rwgxs"]
 [ext_resource type="PackedScene" uid="uid://bo1hhfh04jq41" path="res://scenes/camera_2d.tscn" id="2_4wyf3"]
 [ext_resource type="Script" uid="uid://m72tdddfnjqy" path="res://scripts/boid_manager.gd" id="3_4wyf3"]
-[ext_resource type="PackedScene" uid="uid://6fvff1jv4ila" path="res://scenes/obstacle.tscn" id="4_k0juu"]
+[ext_resource type="Script" uid="uid://d3fv7l3bd651v" path="res://scripts/boid_spawner.gd" id="4_k0juu"]
+[ext_resource type="PackedScene" uid="uid://6fvff1jv4ila" path="res://scenes/obstacle.tscn" id="5_71j4m"]
 
 [node name="World" type="Node2D"]
 
@@ -18,19 +19,17 @@ stretch_mode = 1
 
 [node name="Camera2D" parent="." instance=ExtResource("2_4wyf3")]
 
-[node name="BoidManager" type="Node" parent="." node_paths=PackedStringArray("boidContainer")]
+[node name="BoidManager" type="Node" parent="."]
 script = ExtResource("3_4wyf3")
-spawnRadius = 30.0
-radius = 75.0
-region = Rect2(-200, -200, 400, 400)
-n = 150
-maxSpeed = 6.0
-maxForce = 5.0
-s = 1.15
-c = 0.9
-a = 1.0
-boidContainer = NodePath("../BoidContainer")
+alignmentRadius = 120.0
+alignmentWeight = 1.5
 
 [node name="BoidContainer" type="Node" parent="."]
 
-[node name="Obstacle" parent="." instance=ExtResource("4_k0juu")]
+[node name="BoidSpawner" type="Node" parent="." node_paths=PackedStringArray("boidContainer")]
+script = ExtResource("4_k0juu")
+spawnRadius = 20.0
+region = Rect2(-400, -400, 800, 800)
+boidContainer = NodePath("../BoidContainer")
+
+[node name="Obstacle" parent="." instance=ExtResource("5_71j4m")]

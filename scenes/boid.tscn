@@ -1,8 +1,16 @@
-[gd_scene load_steps=2 format=3 uid="uid://byvs287f0skyy"]
+[gd_scene load_steps=3 format=3 uid="uid://byvs287f0skyy"]
 
 [ext_resource type="Script" uid="uid://dntdhec6f6ind" path="res://scripts/boid.gd" id="1_n4whh"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_n4whh"]
+radius = 100.0
 
 [node name="Boid" type="Node2D"]
 script = ExtResource("1_n4whh")
 maxViewDst = 300.0
-a = 10.0
+avoidWeight = 20.0
+
+[node name="Area2D" type="Area2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D"]
+shape = SubResource("CircleShape2D_n4whh")

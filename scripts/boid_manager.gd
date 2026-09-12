@@ -1,122 +1,73 @@
 extends Node
+class_name FlockManager
 
-@export var spawnRadius : float
-@export var radius : float
-@export var region : Rect2
+@export var separationRadius := 60.0
+@export var cohesionRadius := 80.0
+@export var alignmentRadius := 80.0
 
-@export var n : int = 100
+@export var separationWeight := 1.8
+@export var cohesionWeight := 1.0
+@export var alignmentWeight := 1.0
 
-const boidScene : PackedScene = preload("res://scenes/boid.tscn")
-var sampler : PoissonDiskSampler
 var boids : Array[Boid]
 
-@export var maxSpeed : float
-@export var maxForce : float
-
-@export var s : float
-@export var c : float
-@export var a : float
-
-@export var boidContainer : Node
-
-# Called when the node enters the scene tree for the first time.
 func _ready() -> void:
-	sampler = PoissonDiskSampler.new()
-	spawnBoids()
 	call_deferred("addBoids")
 
 func addBoids():
 	boids.assign(get_tree().get_nodes_in_group("boids"))
 
-# Called every frame. 'delta' is the elapsed time since the previous frame.
 func _physics_process(delta: float) -> void:
-	separate()
-	cohere()
-	align()
+
+	for boid in boids:
+		boid.acc += _separate(boid) * separationWeight
+		boid.acc += _cohere(boid) * cohesionWeight
+		boid.acc += _align(boid) * alignmentWeight
+
 	for boid in boids:
 		boid.update(delta)
-	
-func spawnBoids() -> void:
-	var coordinates : Array[Vector2] = sampler.generatePoints(spawnRadius, region)
-	var numberOfBoids = min(n, coordinates.size())
-	for i in range(numberOfBoids):
-		var idx = randi_range(0, coordinates.size()-1)
-		var boid = boidScene.instantiate()
-		boid.position = coordinates[idx]
-		boid.velocity = Vector2.RIGHT.rotated(randf_range(0, TAU))
-		boid.maxSpeed = maxSpeed
-		coordinates.remove_at(idx)
-		boidContainer.add_child(boid)
 
-func separate():
-	for i in boids.size():
-		var target = Vector2.ZERO
-		var total = 0
-		for j in boids.size():
-			if i == j:
-				continue
-			var dst = boids[i].position.distance_to(boids[j].position)
-			if dst < radius:
-				var diff := boids[i].position - boids[j].position
-				diff /= dst * dst
-				target += diff
-				total += 1
-		
-		if total == 0:
+func _separate(boid: Boid) -> Vector2:
+	var target := Vector2.ZERO
+	var total := 0
+	for other in boids:
+		if other == boid:
 			continue
-		
-		target /= total
-		target = target.normalized() * maxSpeed
-		var force : Vector2 = target - boids[i].velocity
-		force = force.limit_length(maxForce)
-		
-		force *= s
-		boids[i].acc += force
+		var dst = boid.position.distance_to(other.position)
+		if dst < separationRadius and dst > 0.0:
+			target += (boid.position - other.position) / (dst * dst)
+			total += 1
+	if total == 0:
+		return Vector2.ZERO
+	target = (target / total).normalized() * boid.maxSpeed
+	return (target - boid.velocity).limit_length(boid.maxForce)
 
-func cohere() -> void:
-	for i in boids.size():
-		var center : Vector2
-		var total : int = 0
-		for j in boids.size():
-			if i == j:
-				continue
-			var dst = boids[i].position.distance_to(boids[j].position)
-			if dst < radius:
-				center += boids[j].position
-				total += 1
-		
-		if total == 0:
+func _cohere(boid: Boid) -> Vector2:
+	var center := Vector2.ZERO
+	var total := 0
+	for other in boids:
+		if other == boid:
 			continue
-			
-		center /= total
-		var target : Vector2 = center - boids[i].position
-		target = target.normalized() * maxSpeed
-		var force : Vector2 = target - boids[i].velocity
-		force = force.limit_length(maxForce)
-		
-		force *= c
-		boids[i].acc += force
+		var dst = boid.position.distance_to(other.position)
+		if dst < cohesionRadius:
+			center += other.position
+			total += 1
+	if total == 0:
+		return Vector2.ZERO
+	var target = ((center / total) - boid.position).normalized() * boid.maxSpeed
+	return (target - boid.velocity).limit_length(boid.maxForce)
 
-func align() -> void:
-	for i in boids.size():
-		var target : Vector2 = Vector2.ZERO
-		var total : int = 0
-		for j in boids.size():
-			if i == j:
-				continue
-			var dst = boids[i].position.distance_to(boids[j].position)
-			if dst < radius:
-				target += boids[j].velocity
-				total += 1
-		
-		if total == 0:
+func _align(boid: Boid) -> Vector2:
+	var target := Vector2.ZERO
+	var total := 0
+	for other in boids:
+		if other == boid:
 			continue
-		
-		target /= total
-		target = target.normalized() * maxSpeed
-		
-		var force : Vector2 = target - boids[i].velocity
-		force = force.limit_length(maxForce)
-		
-		force *= a
-		boids[i].acc += force
+		var dst = boid.position.distance_to(other.position)
+		if dst < alignmentRadius:
+			target += other.velocity
+			total += 1
+	if total == 0:
+		return Vector2.ZERO
+	target = (target / total).normalized() * boid.maxSpeed
+	return (target - boid.velocity).limit_length(boid.maxForce)
